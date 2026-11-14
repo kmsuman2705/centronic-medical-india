@@ -35,12 +35,11 @@ export const CatalogueDownloadModal: React.FC<CatalogueDownloadModalProps> = ({
   onSelectProduct
 }) => {
   const [downloadSuccess, setDownloadSuccess] = useState(false);
+  const [downloadError, setDownloadError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
   const [activeCatalogueId, setActiveCatalogueId] = useState<'master' | 'cassetteX' | 'centrifuges' | 'safepath'>('master');
-
-  if (!isOpen) return null;
 
   const handlePrint = () => {
     window.print();
@@ -70,6 +69,8 @@ export const CatalogueDownloadModal: React.FC<CatalogueDownloadModalProps> = ({
     });
   }, [searchQuery, selectedCategory]);
 
+  if (!isOpen) return null;
+
   const toggleSelectProduct = (productId: string) => {
     setSelectedProductIds((prev) =>
       prev.includes(productId)
@@ -92,26 +93,53 @@ export const CatalogueDownloadModal: React.FC<CatalogueDownloadModalProps> = ({
     setSearchQuery('');
     setSelectedCategory('all');
   };
+  const triggerBlobDownload = (blob: Blob, filename: string) => {
+    if (blob.size === 0) {
+      throw new Error('The generated catalogue file is empty.');
+    }
 
-  const handleSimulatedDownload = () => {
-    setDownloadSuccess(true);
-    let catalogueContent = '';
-    let filename = 'Centronic_Medical_India_Catalogue_2025.txt';
+    const objectUrl = URL.createObjectURL(blob);
+    const link = document.createElement('a');
 
-    const selectedProductsList = PRODUCTS.filter((p) =>
-      selectedProductIds.includes(p.id)
-    );
-    const isCustom = selectedProductsList.length > 0;
+    link.href = objectUrl;
+    link.download = filename;
+    link.style.display = 'none';
 
-    if (isCustom) {
-      filename = `Centronic_Selected_Products_Catalogue_${selectedProductsList.length}_items.txt`;
-      catalogueContent = `CENTRONIC MEDICAL INDIA PRIVATE LIMITED
+    try {
+      document.body.appendChild(link);
+      link.click();
+    } finally {
+      link.remove();
+
+      // Give the browser time to begin consuming the Blob URL.
+      window.setTimeout(() => {
+        URL.revokeObjectURL(objectUrl);
+      }, 1500);
+    }
+  };
+
+  const handleCatalogueDownload = async () => {
+    setDownloadSuccess(false);
+    setDownloadError('');
+
+    try {
+      let catalogueContent = '';
+      let filename = 'Centronic_Medical_India_Catalogue_2025.txt';
+
+      const selectedProductsList = PRODUCTS.filter((p) =>
+        selectedProductIds.includes(p.id)
+      );
+      const isCustom = selectedProductsList.length > 0;
+
+      if (isCustom) {
+        filename = `Centronic_Selected_Products_Catalogue_${selectedProductsList.length}_items.txt`;
+        catalogueContent = `CENTRONIC MEDICAL INDIA PRIVATE LIMITED
 CUSTOM TECHNICAL PRODUCT COMPENDIUM & INQUIRY SPECIFICATIONS
 Generated on: ${new Date().toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      })}
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        })}
 Headquarters: ${COMPANY_DETAILS.registeredOffice.address}
 Manufacturing Plant: ${COMPANY_DETAILS.manufacturingPlant.address}
 Official Contact: ${COMPANY_DETAILS.contactPerson} | Phone: ${COMPANY_DETAILS.phone} | Email: ${COMPANY_DETAILS.email}
@@ -149,19 +177,37 @@ Manufacturing & Quality Standards:
   Phone: ${COMPANY_DETAILS.phone} | Email: ${COMPANY_DETAILS.email}
 =======================================================
 `;
-    } else if (activeCatalogueId === 'cassetteX') {
-      const link = document.createElement('a');
-      link.href = '/assets/aistudio/CassetteX-Original-File_changes_1802_9cdfe06b.pdf';
-      link.download = 'CassetteX_Official_Catalogue.pdf';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      setDownloadSuccess(true);
-      setTimeout(() => setDownloadSuccess(false), 4000);
-      return;
-    } else if (activeCatalogueId === 'centrifuges') {
-      filename = 'Centronic_Laboratory_Centrifuges_Rotors_Catalogue.txt';
-      catalogueContent = `CENTRONIC MEDICAL INDIA PRIVATE LIMITED - CENTRIFUGES CATALOGUE
+      } else if (activeCatalogueId === 'cassetteX') {
+        const pdfPath =
+          '/assets/aistudio/CassetteX-Original-File_changes_1802_9cdfe06b.pdf';
+        const response = await fetch(pdfPath);
+
+        if (!response.ok) {
+          throw new Error(
+            `CassetteX catalogue could not be downloaded (HTTP ${response.status}).`
+          );
+        }
+
+        const pdfBlob = await response.blob();
+
+        if (pdfBlob.size === 0) {
+          throw new Error('CassetteX catalogue PDF is empty.');
+        }
+
+        const pdfSignature = await pdfBlob.slice(0, 5).text();
+        if (pdfSignature !== '%PDF-') {
+          throw new Error(
+            'The CassetteX catalogue response is not a valid PDF. Check that the PDF exists at the expected public path.'
+          );
+        }
+
+        triggerBlobDownload(pdfBlob, 'CassetteX_Official_Catalogue.pdf');
+        setDownloadSuccess(true);
+        window.setTimeout(() => setDownloadSuccess(false), 4000);
+        return;
+      } else if (activeCatalogueId === 'centrifuges') {
+        filename = 'Centronic_Laboratory_Centrifuges_Rotors_Catalogue.txt';
+        catalogueContent = `CENTRONIC MEDICAL INDIA PRIVATE LIMITED - CENTRIFUGES CATALOGUE
 Official Technical Compendium for Laboratory Centrifuges & Matched Rotors
 Plant: Plot No.837, Sector-69, Zone-7, IMT (HSIIDC), Faridabad, Haryana - 121004
 Registered Office: Plot No 914, Sector 7, Block - C, Faridabad 121006
@@ -187,9 +233,9 @@ MATCHED ROTORS & ACCESSORIES:
 - Microplate Rotor (N031364): 4000 rpm, 2x2x96 well, 2020 x g
 - Rotor Models: CMIF504, CMIS96X2, CMIFMICRO12, CMIFX8, CMIS16, CMIS24/48.
 =======================================================`;
-    } else if (activeCatalogueId === 'safepath') {
-      filename = 'SafePath_LBC_Cytology_Microscope_Slides_Catalogue.txt';
-      catalogueContent = `CENTRONIC MEDICAL INDIA PRIVATE LIMITED / CARE MEDICAL DEVICES LTD.
+      } else if (activeCatalogueId === 'safepath') {
+        filename = 'SafePath_LBC_Cytology_Microscope_Slides_Catalogue.txt';
+        catalogueContent = `CENTRONIC MEDICAL INDIA PRIVATE LIMITED / CARE MEDICAL DEVICES LTD.
 SAFEPATH(TM) LIQUID-BASED CYTOLOGY & MICROSCOPE SLIDES CATALOGUE
 Headquarters: Faridabad, Haryana, India
 
@@ -210,9 +256,9 @@ SAFEPATH(TM) LBC & CYTOLOGY SYSTEM
 - Made from high quality pure water white glass, positively charged. Excellent for histology and cytology specimen samples.
 - Thickness tolerance +/- 0.5mm, ground 90° edges, clipped 45°. Package: 50 Pcs/Box.
 =======================================================`;
-    } else {
-      filename = 'Centronic_Medical_India_Catalogue_2025.txt';
-      catalogueContent = `CENTRONIC MEDICAL INDIA PRIVATE LIMITED
+      } else {
+        filename = 'Centronic_Medical_India_Catalogue_2025.txt';
+        catalogueContent = `CENTRONIC MEDICAL INDIA PRIVATE LIMITED
 LABORATORY EQUIPMENT & DIAGNOSTIC CONSUMABLES
 Headquarters: ${COMPANY_DETAILS.registeredOffice.address}
 Manufacturing Plant: ${COMPANY_DETAILS.manufacturingPlant.address}
@@ -262,21 +308,28 @@ Quality Philosophy: Precision -> Consistency -> Reliability
 Make in India Aligned | ISO Management Principles
 =======================================================
 `;
+      }
+
+      if (!catalogueContent.trim()) {
+        throw new Error('Catalogue content is empty.');
+      }
+
+      const blob = new Blob([catalogueContent], {
+        type: 'text/plain;charset=utf-8'
+      });
+
+      triggerBlobDownload(blob, filename);
+      setDownloadSuccess(true);
+      window.setTimeout(() => setDownloadSuccess(false), 4000);
+    } catch (error) {
+      console.error('Catalogue download failed:', error);
+      setDownloadSuccess(false);
+      setDownloadError(
+        error instanceof Error
+          ? error.message
+          : 'Unable to download the catalogue. Please try again.'
+      );
     }
-
-    const blob = new Blob([catalogueContent], {
-      type: 'text/plain;charset=utf-8'
-    });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-
-    setTimeout(() => setDownloadSuccess(false), 4000);
   };
 
   const isFilteringActive = searchQuery.trim() !== '' || selectedCategory !== 'all';
@@ -375,7 +428,7 @@ Make in India Aligned | ISO Management Principles
             <div className="flex flex-col sm:flex-row gap-2 shrink-0 w-full md:w-auto">
               <button
                 id="catalogue-download-button"
-                onClick={handleSimulatedDownload}
+                onClick={handleCatalogueDownload}
                 className="px-4 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer"
               >
                 <Download className="w-4 h-4" />
@@ -401,9 +454,18 @@ Make in India Aligned | ISO Management Principles
               <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
               <span>
                 {selectedProductIds.length > 0
-                  ? `Technical specification sheet for ${selectedProductIds.length} selected product(s) downloaded successfully!`
-                  : 'Full catalogue compendium downloaded successfully! You can also save or print this document anytime.'}
+                  ? `Download started for ${selectedProductIds.length} selected product(s). Check your browser downloads.`
+                  : 'Catalogue download started. Check your browser downloads.'}
               </span>
+            </div>
+          )}
+
+          {downloadError && (
+            <div
+              role="alert"
+              className="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-800"
+            >
+              {downloadError}
             </div>
           )}
 
@@ -736,7 +798,7 @@ Make in India Aligned | ISO Management Principles
           <div className="flex items-center gap-3 shrink-0">
             {selectedProductIds.length > 0 && (
               <button
-                onClick={handleSimulatedDownload}
+                onClick={handleCatalogueDownload}
                 className="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 cursor-pointer"
               >
                 <Download className="w-3.5 h-3.5" />
