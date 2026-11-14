@@ -1,0 +1,152 @@
+export type Language = 'en' | 'hi';
+
+export const translations = {
+  en: {
+    // Navbar
+    makeInIndia: 'Make in India | Precision Medical Manufacturer',
+    location: 'Faridabad, Haryana, NCR, India',
+    downloadCatalogue: 'Download Catalogue',
+    fixMeeting: 'Fix a Meeting',
+    home: 'Home',
+    aboutUs: 'About Us',
+    products: 'Products',
+    labCentrifuges: 'Laboratory Centrifuges',
+    histologyCytology: 'Histology & Cytology',
+    qualityManufacturing: 'Quality & Manufacturing',
+    contactUs: 'Contact Us',
+    quoteCart: 'Quote Request',
+    medicalBuddyAI: 'Medical Buddy AI',
+    compareProducts: 'Compare Products',
+
+    // Footer
+    footerTagline: 'Precision in Every Laboratory Workflow. ISO 13485:2016 Certified Manufacturer of Laboratory Centrifuges, Histology Equipment, Tissue Embedding Cassettes, and Diagnostic Consumables.',
+    quickLinks: 'Quick Links',
+    productCategories: 'Product Categories',
+    contactDetails: 'Contact Details',
+    manufacturingPlant: 'Manufacturing Plant & R&D Facility',
+    allRightsReserved: 'All rights reserved.',
+    isoCertified: 'ISO 13485 & CE Certified Laboratory Equipment & Consumables',
+
+    // HomePage
+    heroBadge: 'ISO 13485:2016 Certified • CE Compliant • Make in India',
+    heroTitle: 'Precision Engineering for Advanced Diagnostic & Laboratory Workflows',
+    heroSubtitle: 'Leading Indian manufacturer of high-performance laboratory centrifuges, premium tissue embedding cassettes, microtome blades, cytology diagnostic kits, and stainless steel moulds.',
+    exploreProducts: 'Explore Product Catalog',
+    requestCustomQuote: 'Request Bulk Quotation',
+    schedulePlantVisit: 'Schedule Plant Visit',
+    isoCompliance: 'ISO 13485 Certified',
+    batchTraceability: '100% Batch Traceability',
+    panIndiaGlobal: 'Pan-India & Global Supply',
+    expertSupport: 'Direct Engineering Support',
+
+    // ProductsPage
+    productCatalogTitle: 'Comprehensive Product Catalog',
+    productCatalogSubtitle: 'Explore our precision-engineered laboratory equipment, histology consumables, and diagnostic solutions built for uncompromising reliability in clinical and research pathology.',
+    searchPlaceholder: 'Search products by name, model, application, or specs...',
+    allCategories: 'All Categories',
+    centrifuges: 'Centrifuges',
+    histologyConsumables: 'Histology & Pathology',
+    diagnosticKits: 'Diagnostic Kits & Consumables',
+    viewDetails: 'View Specifications',
+    addToQuote: 'Add to RFQ List',
+    addedToQuote: 'Added to RFQ',
+    compare: 'Compare',
+    askAI: 'Ask Medical Buddy AI',
+
+    // ContactPage
+    getInTouch: 'Get in Touch with Our Engineers',
+    contactSubtitle: 'Connect directly with our technical sales and engineering teams in Faridabad for custom rotor specifications, OEM volume supply, or factory audits.',
+    fullName: 'Full Name / Dr. / Mr.',
+    emailAddress: 'Professional Email',
+    phoneNumber: 'Phone / WhatsApp Number',
+    organization: 'Hospital / Laboratory / Organization',
+    productInterest: 'Product Category of Interest',
+    messageNotes: 'Message / Specific Technical Requirements',
+    submitInquiry: 'Submit Technical Inquiry',
+    sending: 'Transmitting...',
+
+    // Common
+    specifications: 'Technical Specifications',
+    applications: 'Clinical & Lab Applications',
+    packaging: 'Packaging & Supply Unit',
+    close: 'Close',
+    cancel: 'Cancel',
+    confirm: 'Confirm',
+    success: 'Success',
+    back: 'Back',
+  },
+  hi: {
+    // Navbar
+    makeInIndia: 'मेक इन इंडिया | सटीक चिकित्सा उपकरण निर्माता',
+    location: 'फरीदाबाद, हरियाणा, एनसीआर, भारत',
+    downloadCatalogue: 'कैटलॉग डाउनलोड करें',
+    fixMeeting: 'मीटिंग बुक करें',
+    home: 'होम',
+    aboutUs: 'हमारे बारे में',
+    products: 'उत्पाद',
+    labCentrifuges: 'प्रयोगशाला सेंट्रीफ्यूज',
+    histologyCytology: 'हिस्टोलॉजी और साइटोलॉजी',
+    qualityManufacturing: 'गुणवत्ता और निर्माण',
+    contactUs: 'संपर्क करें',
+    quoteCart: 'कोटेशन अनुरोध',
+    medicalBuddyAI: 'मेडिकल बडी एआई',
+    compareProducts: 'उत्पाद तुलना',
+
+    // Footer
+    footerTagline: 'प्रत्येक प्रयोगशाला कार्यप्रवाह में सटीकता। प्रयोगशाला सेंट्रीफ्यूज, हिस्टोलॉजी उपकरण, टिश्यू एम्बेडिंग कैसेट और डायग्नोस्टिक उपभोग्य सामग्रियों के ISO 13485:2016 प्रमाणित निर्माता।',
+    quickLinks: 'त्वरित लिंक',
+    productCategories: 'उत्पाद श्रेणियां',
+    contactDetails: 'संपर्क विवरण',
+    manufacturingPlant: 'विनिर्माण संयंत्र और आर एंड डी सुविधा',
+    allRightsReserved: 'सर्वाधिकार सुरक्षित।',
+    isoCertified: 'ISO 13485 और CE प्रमाणित प्रयोगशाला उपकरण और उपभोग्य वस्तुएं',
+
+    // HomePage
+    heroBadge: 'ISO 13485:2016 प्रमाणित • CE अनुरूप • मेक इन इंडिया',
+    heroTitle: 'उन्नत नैदानिक ​​और प्रयोगशाला कार्यप्रवाह के लिए सटीक इंजीनियरिंग',
+    heroSubtitle: 'उच्च-प्रदर्शन प्रयोगशाला सेंट्रीफ्यूज, प्रीमियम टिश्यू एम्बेडिंग कैसेट, माइक्रोटम ब्लेड, साइटोलॉजी डायग्नोस्टिक किट और स्टेनलेस स्टील मोल्ड्स के प्रमुख भारतीय निर्माता।',
+    exploreProducts: 'उत्पाद सूची देखें',
+    requestCustomQuote: 'थोक कोटेशन अनुरोध करें',
+    schedulePlantVisit: 'प्लांट विजिट शेड्यूल करें',
+    isoCompliance: 'ISO 13485 प्रमाणित',
+    batchTraceability: '100% बैच ट्रेसेबिलिटी',
+    panIndiaGlobal: 'अखिल भारतीय और वैश्विक आपूर्ति',
+    expertSupport: 'प्रत्यक्ष इंजीनियरिंग सहायता',
+
+    // ProductsPage
+    productCatalogTitle: 'व्यापक उत्पाद कैटलॉग',
+    productCatalogSubtitle: 'नैदानिक ​​और अनुसंधान पैथोलॉजी में अटूट विश्वसनीयता के लिए निर्मित हमारे सटीक-इंजीनियर प्रयोगशाला उपकरणों, हिस्टोलॉजी उपभोग्य सामग्रियों और नैदानिक ​​समाधानों का अन्वेषण करें।',
+    searchPlaceholder: 'नाम, मॉडल, अनुप्रयोग या विशिष्टताओं द्वारा उत्पाद खोजें...',
+    allCategories: 'सभी श्रेणियां',
+    centrifuges: 'सेंट्रीफ्यूज',
+    histologyConsumables: 'हिस्टोलॉजी और पैथोलॉजी',
+    diagnosticKits: 'डायग्नोस्टिक किट और उपभोग्य वस्तुएं',
+    viewDetails: 'विनिर्देश देखें',
+    addToQuote: 'RFQ सूची में जोड़ें',
+    addedToQuote: 'RFQ में जोड़ा गया',
+    compare: 'तुलना करें',
+    askAI: 'मेडिकल बडी एआई से पूछें',
+
+    // ContactPage
+    getInTouch: 'हमारे इंजीनियरों से संपर्क करें',
+    contactSubtitle: 'कस्टम रोटर विनिर्देशों, OEM थोक आपूर्ति, या फैक्ट्री ऑडिट के लिए फरीदाबाद में हमारी तकनीकी बिक्री और इंजीनियरिंग टीमों से सीधे जुड़ें।',
+    fullName: 'पूरा नाम / डॉ. / श्री',
+    emailAddress: 'व्यावसायिक ईमेल',
+    phoneNumber: 'फ़ोन / व्हाट्सएप नंबर',
+    organization: 'अस्पताल / प्रयोगशाला / संगठन',
+    productInterest: 'रुचि की उत्पाद श्रेणी',
+    messageNotes: 'संदेश / विशिष्ट तकनीकी आवश्यकताएं',
+    submitInquiry: 'तकनीकी पूछताछ सबमिट करें',
+    sending: 'प्रसारित हो रहा है...',
+
+    // Common
+    specifications: 'तकनीकी विनिर्देश',
+    applications: 'नैदानिक ​​और प्रयोगशाला अनुप्रयोग',
+    packaging: 'पैकेजिंग और आपूर्ति इकाई',
+    close: 'बंद करें',
+    cancel: 'रद्द करें',
+    confirm: 'पुष्टि करें',
+    success: 'सफलता',
+    back: 'वापस',
+  }
+};

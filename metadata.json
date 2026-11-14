@@ -1,0 +1,6 @@
+{
+  "name": "Centronic Medical India",
+  "description": "Manufacturer of precision laboratory equipment and diagnostic consumables based in Faridabad, Haryana, India.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
