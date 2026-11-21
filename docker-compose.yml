@@ -5,20 +5,22 @@ services:
     container_name: centronic-medical-india
     restart: unless-stopped
 
-    # Create .env from .env.example first and set ADMIN_PASSWORD / ADMIN_SESSION_SECRET.
-    env_file:
-      - .env
-
+    # Compose reads the local .env file automatically. All values have defaults,
+    # so `docker compose up -d --build` works even before .env is created.
+    # Set ADMIN_PASSWORD / ADMIN_SESSION_SECRET in .env before going live.
     environment:
       NODE_ENV: production
-      PORT: 3000
-      # Set to true only when the site is behind HTTPS.
-      COOKIE_SECURE: "false"
+      PORT: "3000"
+      # The site is served over HTTPS by Caddy, so lock admin cookies to HTTPS.
+      COOKIE_SECURE: "true"
+      APP_URL: ${APP_URL:-https://www.centronicmedical.com}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-centronic2026}
+      ADMIN_SESSION_SECRET: ${ADMIN_SESSION_SECRET:-centronic-admin-fallback-secret-change-me}
 
-    ports:
-      # Public HTTP on the EC2 instance's public IP, plus direct port 3000 access.
-      - "80:3000"
-      - "3000:3000"
+    # Only Caddy publishes ports. The Node app is reachable inside the compose network.
+    expose:
+      - "3000"
 
     volumes:
       # Persist uploaded images/PDFs and the catalog JSON across container rebuilds.
@@ -32,6 +34,38 @@ services:
       retries: 3
       start_period: 20s
 
+  caddy:
+    image: caddy:2-alpine
+    container_name: centronic-caddy
+    restart: unless-stopped
+    depends_on:
+      centronic:
+        condition: service_healthy
+
+    environment:
+      SITE_EMAIL: ${SITE_EMAIL:-admin@centronicmedical.com}
+
+    ports:
+      # Port 80 is required for Let's Encrypt HTTP-01 validation and HTTP -> HTTPS redirect.
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      # Let's Encrypt certificates and Caddy autosaved config survive rebuilds.
+      - caddy-data:/data
+      - caddy-config:/config
+
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:2019/config/ || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
 volumes:
   cmi-data:
   cmi-uploads:
+  caddy-data:
+  caddy-config:

@@ -1,0 +1,34 @@
+{
+	# Let's Encrypt expiry/renewal notices. Override with SITE_EMAIL in .env.
+	email {$SITE_EMAIL}
+}
+
+# Canonical site. Caddy automatically obtains and renews a TLS certificate,
+# redirects HTTP -> HTTPS, and proxies requests to the Node container.
+www.centronicmedical.com {
+	encode zstd gzip
+
+	# Must be larger than the 40 MB catalogue PDF upload limit.
+	request_body {
+		max_size 45MB
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	reverse_proxy centronic:3000
+
+	log {
+		output stdout
+	}
+}
+
+# Non-www (apex) redirects to the canonical www domain over HTTPS.
+centronicmedical.com {
+	redir https://www.centronicmedical.com{uri} permanent
+}

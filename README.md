@@ -65,31 +65,41 @@ rate-limited (5 attempts → 15 minute lockout). Set `COOKIE_SECURE=true` behind
 
 ---
 
-## Deploying on AWS EC2
+## Deploying on your server (HTTPS on www.centronicmedical.com)
 
-The server already listens on `0.0.0.0` and honours the `PORT` env var, so it is reachable
-on the instance's public IP. Two supported options below — pick one.
+The bundled `docker-compose.yml` starts the app behind **Caddy**, which automatically
+obtains and renews a Let's Encrypt TLS certificate. Once DNS points at the server, the
+only command you need is:
 
-### 0. One-time EC2 setup (both options)
+```bash
+docker compose up -d --build
+```
 
-1. Launch an **Ubuntu 24.04 LTS** instance (t3.small or larger).
-2. In its **Security Group → Inbound rules**, add:
-   | Port | Source | Purpose |
-   | --- | --- | --- |
-   | `22` | Your IP | SSH |
-   | `80` | `0.0.0.0/0` | Public website (HTTP) |
-   | `3000` | `0.0.0.0/0` | Direct Node / container access |
-3. Allocate an **Elastic IP** and associate it with the instance so the public IP stays fixed.
-4. The site will be at `http://<PUBLIC-IP>` with Docker (or with nginx), and
-   `http://<PUBLIC-IP>:3000` with the direct Node option. Admin is at `/admin`.
+### One-time DNS / firewall setup
 
-**Always set `ADMIN_PASSWORD` and `ADMIN_SESSION_SECRET` in `.env` before exposing the instance.**
+1. Point **both** DNS names to the server's public IP (both are needed for TLS certs):
+   - `A centronicmedical.com → <PUBLIC-IP>`
+   - `A www.centronicmedical.com → <PUBLIC-IP>`
+2. Open TCP **80** and **443** in the firewall / security group. Port 80 is required for
+   Let's Encrypt validation and the automatic HTTP → HTTPS redirect.
+3. Create `.env` (optional, but strongly recommended) and set real admin credentials:
 
-### Option A — Docker (recommended)
+   ```bash
+   cp .env.example .env
+   nano .env
+   ```
 
-Includes a multi-stage `Dockerfile`, `.dockerignore`, and `docker-compose.yml`.
-Compose publishes host port **80 → container 3000** and also exposes 3000 directly.
-Uploaded files and catalog JSON live in named volumes, so they survive rebuilds.
+   | Variable | Purpose |
+   | --- | --- |
+   | `ADMIN_PASSWORD` | Password for `/admin` |
+   | `ADMIN_SESSION_SECRET` | Long random string used to sign sessions |
+   | `SITE_EMAIL` | Email used by Caddy for certificate notices |
+   | `GEMINI_API_KEY` | Enables the Medical Buddy AI assistant |
+
+   If `.env` is missing, defaults are used so the one command still works —
+   **change the admin credentials before exposing the site**.
+
+### First deploy
 
 ```bash
 sudo apt update
@@ -99,89 +109,54 @@ sudo usermod -aG docker $USER          # log out and back in for this to apply
 
 git clone <YOUR-REPO-URL> /opt/centronic-medical-india
 cd /opt/centronic-medical-india
-cp .env.example .env
-nano .env                              # set ADMIN_PASSWORD + ADMIN_SESSION_SECRET
-
+cp .env.example .env && nano .env      # recommended
 docker compose up -d --build
-docker compose ps                      # status + health
-docker compose logs -f centronic       # follow logs
 ```
 
-Open `http://<PUBLIC-IP>` and `http://<PUBLIC-IP>/admin`.
+Open:
+
+- `https://www.centronicmedical.com`
+- `https://www.centronicmedical.com/admin`
+
+`centronicmedical.com` (non-www) redirects to the canonical `www` domain, and all HTTP
+traffic is redirected to HTTPS. The admin cookie is automatically set with
+`COOKIE_SECURE=true`.
+
+### How it works
+
+- **Caddy** publishes ports 80/443, terminates TLS, handles renewals, and proxies to the
+  Node app at `centronic:3000` over the private compose network. Port 3000 is not public.
+- Certificates live in the `caddy-data` volume, so they survive rebuilds.
+- Uploaded images/PDFs and the catalog live in `cmi-data` and `cmi-uploads`.
+- `deploy/Caddyfile` allows 45 MB request bodies for the 40 MB catalogue upload limit.
+
+### Updates and operations
 
 ```bash
-# Update / restart
+# Deploy changes
 git pull && docker compose up -d --build
+
+# Check health / logs
+docker compose ps
+docker compose logs -f centronic
+docker compose logs -f caddy
 
 # Stop without deleting data
 docker compose down
 
-# Back up the volumes
-docker run --rm -v cmi-data:/data -v cmi-uploads:/uploads -v "$PWD":/backup \
-  alpine tar czf /backup/centronic-backup.tgz -C / data uploads
+# Back up all persistent data
+docker run --rm -v cmi-data:/data -v cmi-uploads:/uploads -v caddy-data:/caddy \
+  -v "$PWD":/backup alpine tar czf /backup/centronic-backup.tgz -C / data uploads caddy
 ```
 
-To use local folders instead of named volumes, replace the `volumes:` block with:
+Keep `.env` private — it is excluded by `.dockerignore` and should never be committed.
 
-```yaml
-volumes:
-  - ./data:/app/data
-  - ./uploads:/app/uploads
-```
+### Troubleshooting HTTPS
 
-If port 80 is already taken, change `"80:3000"` in `docker-compose.yml` to another host port.
+If the certificate is not issued:
 
-### Option B — Node directly on EC2 (no Docker)
-
-```bash
-sudo apt update
-curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
-sudo apt install -y nodejs git
-
-git clone <YOUR-REPO-URL> /opt/centronic-medical-india
-cd /opt/centronic-medical-india
-npm ci
-cp .env.example .env
-nano .env                              # set ADMIN_PASSWORD + ADMIN_SESSION_SECRET
-npm run build
-
-sudo mkdir -p data uploads/images uploads/documents
-sudo chown -R ubuntu:ubuntu data uploads
-
-sudo cp deploy/centronic.service /etc/systemd/system/centronic.service
-sudo systemctl daemon-reload
-sudo systemctl enable --now centronic
-sudo systemctl status centronic
-```
-
-Open `http://<PUBLIC-IP>:3000` and `http://<PUBLIC-IP>:3000/admin`.
-
-```bash
-# Logs / restart / update
-sudo journalctl -u centronic -f
-sudo systemctl restart centronic
-git pull && npm ci && npm run build && sudo systemctl restart centronic
-```
-
-**Optional: serve on plain port 80 with nginx** (so the URL is `http://<PUBLIC-IP>`):
-
-```bash
-sudo apt install -y nginx
-sudo cp deploy/nginx.conf /etc/nginx/sites-available/centronic
-sudo ln -s /etc/nginx/sites-available/centronic /etc/nginx/sites-enabled/
-sudo rm /etc/nginx/sites-enabled/default
-sudo nginx -t && sudo systemctl restart nginx
-```
-
-The bundled `deploy/nginx.conf` sets `client_max_body_size 45M` — required for the
-40 MB catalogue PDF upload limit.
-
-### Deployment notes
-
-- The site is HTTP by default. If you add an HTTPS load balancer / CloudFront / TLS proxy,
-  set `COOKIE_SECURE=true` in `.env` so the admin cookie is only sent over HTTPS.
-- Keep `.env` private — never commit it or bake it into the Docker image (`.dockerignore`
-  excludes it).
-- `data/catalog.json`, `uploads/images/` and `uploads/documents/` are the only state you
-  need to back up; everything else is rebuilt from source.
-- If uploads fail through nginx with a `413` error, raise `client_max_body_size`.
+- Confirm both DNS names resolve publicly to the server (`dig +short centronicmedical.com`).
+- Confirm ports 80 and 443 are reachable from the internet.
+- Check `docker compose logs caddy` for ACME errors.
+- Caddy retries automatically, so once DNS/firewall are fixed the certificate appears
+  without another deploy.
