@@ -10,8 +10,16 @@ import {
   Phone,
   Mail,
   FileSpreadsheet,
+  FileDown,
+  LoaderCircle,
   AlertCircle
 } from 'lucide-react';
+
+function createRfqReference(): string {
+  const now = new Date();
+  const stamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
+  return `CMI-RFQ-${stamp}-${Math.floor(1000 + Math.random() * 9000)}`;
+}
 
 interface QuoteRequestModalProps {
   isOpen: boolean;
@@ -42,8 +50,29 @@ export const QuoteRequestModal: React.FC<QuoteRequestModalProps> = ({
 
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [rfqReference] = useState(createRfqReference);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [pdfError, setPdfError] = useState('');
 
   if (!isOpen) return null;
+
+  const handleDownloadPdf = async () => {
+    if (quoteItems.length === 0 || isGeneratingPdf) return;
+    setPdfError('');
+    setIsGeneratingPdf(true);
+    try {
+      const { generateQuotationRequestPdf } = await import('../utils/quotationPdf');
+      await generateQuotationRequestPdf({
+        reference: rfqReference,
+        items: quoteItems,
+        customer: formData
+      });
+    } catch {
+      setPdfError('PDF could not be generated. Please try again.');
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -286,21 +315,45 @@ export const QuoteRequestModal: React.FC<QuoteRequestModalProps> = ({
                   />
                 </div>
 
-                <div className="pt-2 flex items-center justify-between">
+                <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                   <div className="text-[11px] text-slate-500 flex items-center gap-1.5">
                     <AlertCircle className="w-4 h-4 text-indigo-600 shrink-0" />
                     <span>Manufacturer Direct Pricing • Faridabad, Haryana</span>
                   </div>
 
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="px-6 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold flex items-center gap-2 shadow-xs hover:shadow transition-all cursor-pointer disabled:opacity-50"
-                  >
-                    <Send className="w-3.5 h-3.5" />
-                    <span>{isSubmitting ? 'Dispatching RFQ...' : 'Submit Quotation Request'}</span>
-                  </button>
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleDownloadPdf}
+                      disabled={quoteItems.length === 0 || isGeneratingPdf}
+                      title={quoteItems.length === 0 ? 'Add at least one product to the RFQ list first' : 'Download a branded RFQ summary as PDF'}
+                      className="px-4 py-2.5 rounded-lg border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isGeneratingPdf ? (
+                        <LoaderCircle className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <FileDown className="w-3.5 h-3.5" />
+                      )}
+                      <span>{isGeneratingPdf ? 'Preparing PDF...' : 'Download Quotation PDF'}</span>
+                    </button>
+
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="px-6 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold flex items-center justify-center gap-2 shadow-xs hover:shadow transition-all cursor-pointer disabled:opacity-50"
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                      <span>{isSubmitting ? 'Dispatching RFQ...' : 'Submit Quotation Request'}</span>
+                    </button>
+                  </div>
                 </div>
+
+                {pdfError && (
+                  <p className="text-[11px] text-rose-600 flex items-center gap-1.5">
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    {pdfError}
+                  </p>
+                )}
               </form>
             </div>
           )}

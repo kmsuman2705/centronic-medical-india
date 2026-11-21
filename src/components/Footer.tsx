@@ -11,7 +11,6 @@ import {
   Globe2,
   ExternalLink,
   Download,
-  Plus,
   Calendar
 } from 'lucide-react';
 
@@ -39,17 +38,11 @@ export const Footer: React.FC<FooterProps> = ({
           {/* Brand & Description (4 cols) */}
           <div className="lg:col-span-4 space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold shadow-xs border border-indigo-500/30">
-                <Plus className="w-5 h-5 text-white" strokeWidth={3} />
-              </div>
-              <div>
-                <span className="text-xl font-extrabold tracking-tight text-white block">
-                  CENTRONIC <span className="text-indigo-400">MEDICAL</span>
-                </span>
-                <span className="text-xs uppercase tracking-wider text-slate-400 block font-medium">
-                  India Private Limited
-                </span>
-              </div>
+              <img
+                src="/assets/brand/centronic-logo.png"
+                alt="Centronic Medical India Private Limited"
+                className="h-10 sm:h-12 w-auto max-w-[230px] object-contain object-left brightness-0 invert"
+              />
             </div>
 
             <p className="text-sm text-slate-300 font-medium">
@@ -165,6 +158,14 @@ export const Footer: React.FC<FooterProps> = ({
                   <Download className="w-3 h-3" />
                   <span>Brochure / Catalogue</span>
                 </button>
+                <a
+                  href="/documents/cmipl-company-letterhead.docx"
+                  download
+                  className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-medium transition-colors border border-slate-700 cursor-pointer"
+                >
+                  <Download className="w-3 h-3" />
+                  <span>Official Letterhead (DOCX)</span>
+                </a>
               </li>
             </ul>
           </div>

@@ -14,7 +14,6 @@ import {
   ChevronRight,
   Sparkles,
   ShieldCheck,
-  Plus,
   Calendar,
   Bot,
   Scale,
@@ -130,20 +129,11 @@ export const Navbar: React.FC<NavbarProps> = ({
             onClick={() => handleNavClick('home')}
             className="flex items-center gap-3 text-left group cursor-pointer focus:outline-none"
           >
-            <div className="w-10 h-10 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold shadow-xs border border-indigo-500/30 group-hover:scale-105 transition-transform">
-              <Plus className="w-5 h-5 text-white" strokeWidth={3} />
-            </div>
-            <div>
-              <div className="text-lg sm:text-xl font-extrabold tracking-tight text-slate-900 leading-none">
-                CENTRONIC
-                <span className="text-indigo-600 ml-1.5 text-sm sm:text-base font-bold uppercase tracking-wider">
-                  MEDICAL
-                </span>
-              </div>
-              <div className="text-[10px] sm:text-[11px] uppercase tracking-widest text-slate-500 font-semibold mt-0.5">
-                India Private Limited
-              </div>
-            </div>
+            <img
+              src="/assets/brand/centronic-logo.png"
+              alt="Centronic Medical India Private Limited"
+              className="h-9 sm:h-10 w-auto max-w-[170px] object-contain object-left group-hover:scale-[1.02] transition-transform"
+            />
           </button>
 
           {/* Desktop Navigation Links */}
