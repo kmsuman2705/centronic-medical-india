@@ -1,0 +1,12 @@
+node_modules
+dist
+.git
+.gitignore
+data
+uploads
+*.log
+.DS_Store
+
+# Never bake secrets into the image - pass them with -e / --env-file / compose env_file.
+.env
+.env.*

@@ -1,0 +1,23 @@
+[Unit]
+Description=Centronic Medical India Website
+Documentation=https://github.com/
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/opt/centronic-medical-india
+
+# Secrets are read from the deployed .env (copy of .env.example).
+EnvironmentFile=/opt/centronic-medical-india/.env
+Environment=NODE_ENV=production
+Environment=PORT=3000
+
+ExecStart=/usr/bin/node /opt/centronic-medical-india/dist/server.cjs
+Restart=always
+RestartSec=5
+KillSignal=SIGINT
+
+[Install]
+WantedBy=multi-user.target
