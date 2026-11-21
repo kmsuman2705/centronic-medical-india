@@ -1,5 +1,12 @@
 import { ProductItem, ProductCategory } from '../types';
 
+// Mutable config object: the admin backend updates `pdfUrl` at runtime after the
+// catalog payload is fetched in main.tsx. Keep this as an object (not a string) so
+// every consumer sees the current value through the live ES module binding.
+export const CATALOGUE_CONFIG = {
+  pdfUrl: '/assets/aistudio/CassetteX-Original-File_changes_1802_9cdfe06b.pdf',
+};
+
 export const CENTRONIC_IMAGES = {
   hero: '/images/WhatsApp Image 2026-09-22 at 1.14.00 PM.jpeg',
   centrifuge: '/images/WhatsApp Image 2026-09-22 at 1.12.40 PM.jpeg',

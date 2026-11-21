@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { COMPANY_DETAILS } from '../data/companyData';
-import { PRODUCTS, CATEGORY_INFO } from '../data/productsData';
+import { PRODUCTS, CATEGORY_INFO, CATALOGUE_CONFIG } from '../data/productsData';
 import { ProductCategory, ProductItem } from '../types';
 import {
   X,
@@ -178,8 +178,7 @@ Manufacturing & Quality Standards:
 =======================================================
 `;
       } else if (activeCatalogueId === 'cassetteX') {
-        const pdfPath =
-          '/assets/aistudio/CassetteX-Original-File_changes_1802_9cdfe06b.pdf';
+        const pdfPath = CATALOGUE_CONFIG.pdfUrl;
         const response = await fetch(pdfPath);
 
         if (!response.ok) {

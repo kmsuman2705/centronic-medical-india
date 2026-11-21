@@ -3,13 +3,27 @@ import path from 'path';
 import dotenv from 'dotenv';
 import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI } from '@google/genai';
+import adminRouter from './server/adminRoutes';
+import { ensureStorage, publicCatalog, UPLOADS_DIR } from './server/catalogStore';
 
 dotenv.config();
+ensureStorage();
 
 const app = express();
-const PORT = 3000;
+const PORT = Number(process.env.PORT) || 3000;
 
 app.use(express.json());
+
+// Self-managed uploads are served directly from disk.
+app.use('/uploads', express.static(UPLOADS_DIR, { maxAge: '1h' }));
+
+// Admin content management (login, image/PDF upload-delete, product CRUD).
+app.use('/api/admin', adminRouter);
+
+// Public catalog payload consumed by the storefront on page load.
+app.get('/api/catalog', (_req, res) => {
+  res.json(publicCatalog());
+});
 
 // Initialize Gemini client lazily
 let genAiClient: GoogleGenAI | null = null;
